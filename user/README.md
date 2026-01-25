@@ -35,7 +35,6 @@
 * [Command Line](#command-line-interface)
 * [Terminal Interface](#terminal-interface)
 * [Other Parameter](#other-parameter)
-* [Use Case scenario](#)
 
 # What is this guide about
 This guide explains how to use pyDatalink software. It comes with 4 types of interface:
