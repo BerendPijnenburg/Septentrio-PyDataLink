@@ -277,10 +277,11 @@ class Stream:
                     self.stop_event.clear()
                     self._clear_queue(self.linked_data[self.stream_id])
                     if self.logging :
-                        self.logger = open(self.logging_file,"w",encoding="utf-8")
+                        # JDT : append instead of overwrite every time
+                        self.logger = open(self.logging_file,"a",encoding="utf-8")
 
                         if self.log_file is not None :
-                            self.log_file.debug("Stream %s : init loggin file :  %s" , self.stream_id,self.logging_file)
+                            self.log_file.debug("Stream %s : init logging file :  %s" , self.stream_id,self.logging_file)
 
                     if self.send_startup_script:
 

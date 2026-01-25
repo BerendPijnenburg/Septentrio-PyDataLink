@@ -28,22 +28,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from time import sleep
 import sys
 import signal
 from ..StreamConfig.App import App
-from NTRIP.NtripClient import NtripClient
-print(NtripClient.last_GGA_msg)
 
-from flask import Flask
+from flask import Flask, app
 from flask import Flask, jsonify 
-import threading 
+import threading
+import src.UserInterfaces.NmeaMsgShare as NmeaMsgShare
 
 web_app = Flask(__name__) 
-status_message = "Waiting for update..." # Shared string
-
 @web_app.route('/status') 
 def status():
-    return jsonify({"Status": status_message})
+    return jsonify({"Status": NmeaMsgShare.last_nmea_message_sent_to_caster})
 
 def start_web_server(): 
     web_app.run(host='0.0.0.0', port=5000)
@@ -59,14 +57,22 @@ class HeadlessUserInterface :
     def main_menu(self) :
         """Main menu of TUI
         """
-        global status_message
-        
         flask_thread = threading.Thread(target=start_web_server, daemon=True) 
         flask_thread.start()
-
+        
         while True:
-            #status_message= "Pi is really online now !"
-            status_message= NtripClient.last_GGA_message
+            # We want to try to connect periodically in case of failure at startup or losing cellular connection or
+            # moving to different wifi network, etc. Say every 10 seconds
+            sleep(10)
+            for port_id, value  in enumerate(self.app.preferences.connect):
+                if self.app.stream_list[port_id] is not None and not self.app.stream_list[port_id].is_connected() and value:
+                    if port_id < self.app.preferences.max_streams:  
+                        try :
+                            self.app.stream_list[port_id].connect(self.app.stream_list[port_id].stream_type)
+                        except Exception as e:
+                            self.app.stream_list[port_id].startup_error =f"Stream couldn't start properly : \n {e}"
+                            if self.app.log_file is not None :
+                                self.app.log_file.info("Retried Stream %s : Could not start properly. " , self.app.stream_list[port_id].stream_id)
             pass  # Replace with your actual logic
 
     def shutdown_handler(self, signum, frame):

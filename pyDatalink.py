@@ -48,6 +48,7 @@ except NotImplementedError :
     TUI = False
 
 from src.UserInterfaces.CommandLineInterface import CommandLineInterface
+from src.UserInterfaces.HeadlessUserInterface import HeadlessUserInterface
 
 def clean_log_folder():
     files = [os.path.join(LOGFILESPATH, f) for f in os.listdir(LOGFILESPATH) if os.path.isfile(os.path.join(LOGFILESPATH, f))]
@@ -105,13 +106,15 @@ class DatalinkApp:
 
     def start(self) -> None :
         if self.config_args.Mode == "TUI":
-            self.datalink__terminal_start()
+            self.datalink_terminal_start()
         elif self.config_args.Mode == "GUI":
             self.datalink_graphical_start()
         elif self.config_args.Mode == "CMD":
             self.datalink_cmdline_start()
+        elif self.config_args.Mode == "HEADLESS":
+            self.datalink_headless_start()
 
-    def datalink__terminal_start(self):
+    def datalink_terminal_start(self):
         """Start Datalink as a Graphical User interface
         """
         if os.name == "posix" and TUI:
@@ -127,6 +130,18 @@ class DatalinkApp:
         """
         if(GUI):
             self.user_interface = QApplication()
+            self.user_interface.setStyleSheet("""
+                QComboBox {
+                    color: black;         /* Text color when collapsed */
+                }
+            """)
+            # set general formatting
+            #self.user_interface.setStyleSheet("""
+            #QLineEdit, QTextEdit, QPlainTextEdit, QPushButton, QSpinBox, QLabel, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFrame, QFileDialog, QGroupBox, QGridLayout {
+            #    color: black;
+            #    background-color: lightgreen;
+            #    }
+            #""")
             gallery = GraphicalUserInterface(self.app)
             gallery.show()
             sys.exit(self.user_interface.exec())
@@ -139,11 +154,20 @@ class DatalinkApp:
         self.user_interface = CommandLineInterface(self.app , show_data_id= self.show_data_port)
         sys.exit(self.user_interface.run())
 
+    def datalink_headless_start(self):
+        """Start Datalink without User interface
+        """
+        if os.name == "posix" and TUI:
+            self.user_interface = HeadlessUserInterface(self.app)
+            sys.exit(self.user_interface.main_menu())
+        else :
+            print("Sorry the headless version of Data link is only available on Unix distro")
+
 if __name__ == "__main__":
     check_data_folder()
 
     parser = argparse.ArgumentParser(prog="PyDatalink" ,description='')
-    parser.add_argument('--Mode','-m', choices=['TUI', 'GUI', 'CMD'], default='GUI',
+    parser.add_argument('--Mode','-m', choices=['TUI', 'GUI', 'CMD', 'HEADLESS'], default='GUI',
                         help="Start %(prog)s with a specific interface (DEFAULT : GUI)")
     parser.add_argument('--ConfigPath','-c', action='store', default= DEFAULTCONFIGFILE ,
                             help='Path to the config file ( This Option won\'t be use when in CMD mode )  ')

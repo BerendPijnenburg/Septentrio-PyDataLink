@@ -80,7 +80,7 @@ class CommandLineInterface:
             time.sleep(1)
             speed = "\r"
             for port in app.stream_list:
-                speed += "Port "+ str(port.stream_id) +" : in "+ str(port.data_transfer_input) + " kBps ; out "+ str(port.data_transfer_output) + " kBps "
+                speed += "Port "+ str(port.stream_id) +" : in|out "+ str(port.data_transfer_input) + "|"+ str(port.data_transfer_output) + "kBps"
             print(speed, end="\r") 
         return 0
 

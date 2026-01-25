@@ -3,7 +3,12 @@ import subprocess
 import sys
 import shutil
 import venv
+import argparse
 from src.constants import *
+
+parser = argparse.ArgumentParser(description="Build PyDataLink")
+parser.add_argument('--skip_requirements', action='store_true', help='Installing Python packages')
+args = parser.parse_args()
 
 # Define paths and script name
 script_name = MAINSCRIPTPATH
@@ -32,20 +37,26 @@ if sys.platform == 'win32' :
 else :
     activate_script = os.path.join(venv_dir, 'bin', 'activate')
     venv_exe_path =  os.path.join(venv_dir, 'bin')
-print('Install required python packages')
-subprocess.run([f'{venv_exe_path}/python', '-m', 'pip', 'install', '-r', requirements_file])
+
+if not args.skip_requirements:
+    print("Install required python packages")
+    subprocess.run([f'{venv_exe_path}/python', '-m', 'pip', 'install', '-r', requirements_file])
+else:
+    print("Skipping package installation as requested.")
 
 print('Create the executable')
 pyinstaller_command = [
     f'{venv_exe_path}/pyinstaller',
     '--name=' + APPNAME,
     '--onefile',
-    '--icon=' + icon_path,
+#    '--icon=' + icon_path,
     '--distpath=' + output_directory,
     '--clean',
     '--noconfirm',
     '--noconsole',
     '--add-data=' + DATAFILESPATH +':data',
+#    '--additional-hooks-dir=' + PROJECTPATH,
+    '--log-level=WARN',
     script_name
 ]
 try :
@@ -62,10 +73,10 @@ finally :
         deactivate_script = os.path.join(venv_dir, 'bin', 'deactivate')
 
 
-    subprocess.run(deactivate_script, shell=True)
+    #subprocess.run(deactivate_script, shell=True)
 
 
-    shutil.rmtree(venv_dir)
+    #shutil.rmtree(venv_dir)
     try :
         if status.returncode == 0 :
             print('Build completed successfully!')

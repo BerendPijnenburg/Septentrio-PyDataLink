@@ -7,7 +7,12 @@
 </div>
 <br>
 
-**Note : This tool is currently under testing. Feel free to provide feedback <a href="https://forms.office.com/e/UqdAs4hfF3 ">here</a> or file an issue in this Github repository.**
+**Note : This tool is currently under testing. Feel free to provide feedback <a href="https://forms.office.com/e/UqdAs4hfF3 ">here</a> or file an issue in this Github repository.
+The main differences between this fork and its parent are:
+- developed and tested for Raspberry Pi environment
+- addition of a headless mode that allows pydatalink to do its magic without being connected to a PC
+**
+
 ## AUTHORS
   
 | Name | GitHub |
@@ -18,7 +23,7 @@
   
 | GitHub |
 |--------|
-| <a href="https://github.com/septentrio-users">septentrio-users</a> </br> |    
+| <a href="https://github.com/SeptenJDT">Jan_De_Turck</a> </br> |    
 
 ## DO YOU HAVE ANY QUESTIONS? CONTACT SEPTENTRIO SUPPORT TEAM
 
@@ -106,7 +111,7 @@ Once you've installed python, all you have to do is download the source code and
 
 ### Using git clone
 ```
-git clone https://github.com/septentrio-gnss/Septentrio-PyDataLink.git
+git clone https://github.com/SeptenJDT/Septentrio-PyDataLink
 cd Septentrio-PyDataLink
 ```
 ### using GitHub
@@ -118,7 +123,11 @@ to build and generate the executable file  , run the folowing command
 ```
 python build.py
 ```
-After the build is successfully completed , a executable file will be generated 
+After the build is successfully completed , a PyDataLink executable file will be generated.
+The first time you build the project a virtual environment will be made and necessary libraries will be installed. The second time this will be skipped. Additionally, using the --skip_requirements parameter it is possible to eliminate checking for package installations in order to speed up the build process.
+```
+python build.py --skip_requirements
+```
 
 <br>
 
@@ -142,7 +151,7 @@ The purpose of the development guide is to explain how the code is structured, h
 
 <div align="center">
 
-| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to developper Guide</a> |
+| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to developer Guide</a> |
 |---|
 
 </div>
@@ -157,9 +166,7 @@ The current version of pyDatalink has been tested on the following platform :
 The current version of pyDatalink has been tested with the following packages version : 
 - Python 3.11.2 and 3.12.3 
 - pyserial 3.5
-- PySide6 6.7.0 
-- PySide6_Addons 6.7.0
-- PySide6_Essentials 6.7.0
-- shiboken6 6.7.0
-- simple-term-menu 1.6.4
-- typing_extensions 4.11.0
+- PySide6 6.8.0.2
+- PySide6_Addons 6.8.0.2
+- PySide6_Essentials 6.8.0.2
+- shiboken6 6.8.0.2

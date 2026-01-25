@@ -39,8 +39,7 @@ from PySide6.QtGui import  QRegularExpressionValidator,QTextCursor,QAction,QIcon
 from PySide6.QtWidgets import (QMainWindow, QApplication, QCheckBox, QComboBox, QFrame,
                                QDialog, QDialogButtonBox,QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                                QLineEdit, QPushButton, QRadioButton, QMessageBox,
-                               QSpinBox,QTabWidget, QTextEdit,QVBoxLayout, QWidget,QFileDialog)
-
+                               QSpinBox,QTabWidget, QTextEdit,QVBoxLayout, QWidget,QFileDialog, QSizePolicy)
 
 def pair_h_widgets( *widgets : QWidget ) -> QHBoxLayout:
     """Add every widgets to a horizontal layout
@@ -110,20 +109,20 @@ class GraphicalUserInterface(QMainWindow):
         menu_bar = self.menuBar()
 
         # Create a menu
-        file_menu = menu_bar.addMenu('File')
+        file_menu = menu_bar.addMenu("&File")
 
         # Preferences action
-        preference_action = QAction("Preferences",self)
+        preference_action = QAction("&Preferences",self)
         preference_action.setShortcut('Ctrl+P')
         preference_action.triggered.connect(lambda p : self.open_preference_interface())
 
         # exit action
-        exit_Action = QAction('Exit', self)
+        exit_Action = QAction("&Exit", self)
         exit_Action.setShortcut('Ctrl+Q')
         exit_Action.triggered.connect(lambda : self.close())
 
         file_menu.addAction(preference_action)
-        file_menu.addSeparator()
+        #file_menu.addSeparator()
         file_menu.addAction(exit_Action)
 
         # IDEA -  TO DO
@@ -133,17 +132,17 @@ class GraphicalUserInterface(QMainWindow):
         #Change config
 
         # github page
-        github_page_action = QAction(QIcon(os.path.join(DATAFILESPATH ,"Github_icon.png")),"GitHub Repository", self)
+        github_page_action = QAction(QIcon(os.path.join(DATAFILESPATH ,"Github_icon.png")),"&GitHub Repository", self)
         github_page_action.triggered.connect(lambda : self.open_link())
 
         # About action
-        about_action = QAction(QIcon(os.path.join(DATAFILESPATH , 'pyDatalink_icon.png')),"About",self)
+        about_action = QAction(QIcon(os.path.join(DATAFILESPATH , 'pyDatalink_icon.png')),"&About",self)
         about_action.triggered.connect(lambda p : self.open_about_dialog())
 
         #Help Menu
-        help_menu = menu_bar.addMenu("Help")
+        help_menu = menu_bar.addMenu("&Help")
         help_menu.addAction(github_page_action)
-        help_menu.addSeparator()
+        #help_menu.addSeparator()
         help_menu.addAction(about_action)
 
         #Main Window layout
@@ -222,7 +221,7 @@ class ConnectionCard :
         """
         result = QGroupBox(f"Connection {self.stream_id}")
 
-        result.setFixedSize(300,350)
+        result.setFixedSize(305,350)
         #Top button
         self.connect_button = QPushButton("Connect")
 
@@ -231,7 +230,7 @@ class ConnectionCard :
 
        # overviewText
         self.current_config_overview = QLabel()
-        self.current_config_overview.setText(f"Current configuration :\n {self.stream.to_string()}")
+        self.current_config_overview.setText(f"Type :\n {self.stream.to_string()}")
         self.current_config_overview.setAlignment(Qt.AlignmentFlag.AlignJustify)
         self.current_config_overview.setFixedHeight(150)
 
@@ -242,7 +241,7 @@ class ConnectionCard :
 
         #Data Transfert
         self.current_data_transfert = QLabel()
-        self.current_data_transfert.setText(f"In: {self.stream.data_transfer_input} kBps | Out: {self.stream.data_transfer_output} kBps")
+        self.current_data_transfert.setText(f"In|Out: {self.stream.data_transfer_input} | {self.stream.data_transfer_output} kBps")
         self.current_data_transfert.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.current_data_transfert.setStyleSheet("QWidget { border: 2px solid grey; }")
         self.current_data_transfert.setFixedSize(180,24)
@@ -299,7 +298,7 @@ class ConnectionCard :
         link_widget = QWidget()
         
         link_layout = QHBoxLayout(link_widget)
-        link_layout.addWidget(QLabel("Links : "))
+        link_layout.addWidget(QLabel("Link"))
         for a in range(self.max_streams):
             new_check_box = QCheckBox(str(a))
             if self.stream_id == a :
@@ -334,7 +333,7 @@ class ConnectionCard :
         """Refresh sumarry value when a setting has changed
         """
         self.current_config_overview.setText(f"Current configuration :  {self.stream.stream_type.name}\n{self.stream.to_string()}")
-        self.current_data_transfert.setText(f"In: {self.stream.data_transfer_input} kBps | Out: {self.stream.data_transfer_output} kBps")
+        self.current_data_transfert.setText(f"In|Out: {self.stream.data_transfer_input} | {self.stream.data_transfer_output} kBps")
         if not self.stream.connected and self.connect_button.text() =="Disconnect" :
             self.connect_button.setText("Connect")
             self.configure_button.setDisabled(False)
@@ -392,7 +391,7 @@ class ConfigureInterface(QDialog) :
         self.stream = stream
         self.stream_save = copy.copy(stream)
         self.setModal(True)
-        self.setFixedSize(350,580)
+        self.setFixedSize(350,650)
         configure_layout = QVBoxLayout(self)
         self.previous_tab = previous_tab
         self.update_thread = None
@@ -493,7 +492,17 @@ class ConfigureInterface(QDialog) :
         ports = self.stream.serial_settings.get_available_port()
         if len(ports) > 0 :
             for port in ports :
-                available_port_list.addItem(port[0].replace("/dev/ttyACM","COM") + " - " + port[1].split("-")[0],port[0])
+                # Check whether there is a symbolic link to the /dev/ttyACM* device
+                # and if there is, add it to the list instead of the /dev/ttyACM* device
+                if port[0].startswith("/dev/ttyACM"):
+                    for entry in os.listdir("/dev"): 
+                        full_path = os.path.join("/dev", entry) 
+                        if os.path.islink(full_path): 
+                            link_target = os.path.realpath(full_path) 
+                            if link_target == os.path.realpath(port[0]): 
+                                available_port_list.addItem(entry,port[0])
+                else :
+                    available_port_list.addItem(port[0].replace("/dev/ttyACM","ttyACM") + " - " + port[1].split("-")[0],port[0])
             available_port_list.setCurrentIndex(-1)
         else :
             available_port_list.addItem("No COM port detected")
@@ -501,7 +510,7 @@ class ConfigureInterface(QDialog) :
         if self.stream.serial_settings.port != "":
             index = available_port_list.findData(self.stream.serial_settings.port)
             available_port_list.setCurrentIndex(index)
-        available_port_label = QLabel("Port COM:")
+        available_port_label = QLabel("Port :")
         available_port_label.setBuddy(available_port_list)
 
         #Baudrate
@@ -690,6 +699,8 @@ class ConfigureInterface(QDialog) :
         """ntrip config tab
         """
         result = QWidget()
+        result.setFixedHeight(750) # Set height to 300 pixels
+        result.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         result_layout = QVBoxLayout(result)
 
         # Host name Box
@@ -699,7 +710,7 @@ class ConfigureInterface(QDialog) :
 
         self.ntrip_host_name = NtripLineEdit(None)
         self.ntrip_host_name.setText(self.stream.ntrip_client.ntrip_settings.host)
-        host_name_label= QLabel("Host : ")
+        host_name_label= QLabel("Host :")
         host_name_label.setBuddy(self.ntrip_host_name)
 
         host_name_layout = QHBoxLayout()
@@ -716,7 +727,7 @@ class ConfigureInterface(QDialog) :
         
         self.ntrip_host_name.other_widget= self.ntrip_port
 
-        port_label = QLabel("Port : ")
+        port_label = QLabel("Port :")
         port_label.setBuddy(self.ntrip_port)
 
         port_layout = QHBoxLayout()
@@ -742,7 +753,7 @@ class ConfigureInterface(QDialog) :
 
         self.cert = QLineEdit()
         self.cert.setText(self.stream.ntrip_client.ntrip_settings.cert)
-        cert_label= QLabel("Certificate : ")
+        cert_label= QLabel("Certificate :")
         cert_label.setBuddy(self.cert)
         cert_select_file = QPushButton("...")
         cert_select_file.setToolTip("Only .cer, .crt, .pem or .key Files are allowed")
@@ -757,19 +768,19 @@ class ConfigureInterface(QDialog) :
 
         user = QLineEdit()
         user.setText(self.stream.ntrip_client.ntrip_settings.username)
-        user_label= QLabel("User : ")
+        user_label= QLabel("User :")
         user_label.setBuddy(user)
         auth_box_layout.addLayout(pair_h_widgets(user_label,user))
 
         password = QLineEdit()
         password.setText(self.stream.ntrip_client.ntrip_settings.password)
-        password_label= QLabel("Password : ")
+        password_label= QLabel("Password :")
         password_label.setBuddy(password)
         auth_box_layout.addLayout(pair_h_widgets(password_label , password))
 
         # FIXED POSITION Box
 
-        fixed_position_box = QGroupBox("Fixed position for GGA ")
+        fixed_position_box = QGroupBox("Fixed position for GGA")
         fixed_position_box.setCheckable(True)
         fixed_position_box.setChecked(self.stream.ntrip_client.ntrip_settings.fixed_pos)
 
@@ -780,7 +791,7 @@ class ConfigureInterface(QDialog) :
         input_validator = QRegularExpressionValidator(QRegularExpression("[NS] [0-9]{2}.[0-9]{9}"))
         latitude.setValidator(input_validator)
         latitude.setText(self.stream.ntrip_client.ntrip_settings.get_latitude())
-        latitude_label= QLabel("Latitude : ")
+        latitude_label= QLabel("Latitude :")
         latitude_label.setBuddy(latitude)
         fixed_position_box_layout.addLayout(pair_h_widgets(latitude_label,latitude))
 
@@ -789,12 +800,12 @@ class ConfigureInterface(QDialog) :
         input_validator = QRegularExpressionValidator(QRegularExpression("[EW] [0-9]{3}.[0-9]{9}"))
         longitude.setValidator(input_validator)
         longitude.setText(self.stream.ntrip_client.ntrip_settings.get_longitude())
-        longitude_label= QLabel("Longitude : ")
+        longitude_label= QLabel("Longitude :")
         longitude_label.setBuddy(longitude)
         fixed_position_box_layout.addLayout(pair_h_widgets(longitude_label,longitude))
 
         height = QSpinBox()
-        height.setMaximum(100000)
+        height.setMaximum(10000)
         height.setMaximumWidth(100)
         height.setValue(self.stream.ntrip_client.ntrip_settings.height)
         height_label = QLabel("Height")
@@ -1030,6 +1041,11 @@ class ShowDataInterface(QDialog):
         if self.stream.data_to_show.empty() is False :
             value = self.stream.data_to_show.get()
             if not self.freeze :
+                if isinstance(value, bytes):
+                    try: 
+                        value = value.decode('utf-8') 
+                    except UnicodeDecodeError: # Fallback: show as hex string 
+                        value = value.hex(' ').upper() + '\n'
                 self.show_data_output.insertPlainText( value )
                 self.show_data_output.moveCursor(QTextCursor.End)
                 self.show_data_output.horizontalScrollBar().setValue(self.show_data_output.horizontalScrollBar().minimum())
