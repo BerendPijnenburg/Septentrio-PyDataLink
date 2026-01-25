@@ -9,7 +9,7 @@
 
 **Note : This tool is currently under testing. Feel free to provide feedback <a href="https://forms.office.com/e/UqdAs4hfF3 ">here</a> or file an issue in this Github repository.
 The main differences between this fork and its parent are:
-- developed and tested for Raspberry Pi environment
+- developed and tested for Raspberry Pi 5 environment
 - addition of a headless mode that allows pydatalink to do its magic without being connected to a PC
 **
 
@@ -141,7 +141,7 @@ The purpose of the user guide is to explain how to install the application, how 
 
 <div align="center">
 
-| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/user">Go to User Manual</a> |
+| <a href="https://github.com/SeptenJDT/Septentrio-PyDataLink/tree/main/user">Go to User Manual</a> |
 |---|
 
 </div>
@@ -160,6 +160,7 @@ The purpose of the development guide is to explain how the code is structured, h
 ### Tested Platforms
 The current version of pyDatalink has been tested on the following platform :
 - Raspberry Pi OS 64bit with Desktop - kernel : 6.6 ( Raspberry pi 4)
+- Raspberry Pi 5 OS Debian GNU/Linux 12 (bookworm) - kernel : Linux 6.12.47+rpt-rpi-2712
 - Windows 10 *(GUI & CMD only)*
 
 ### Tested Package version

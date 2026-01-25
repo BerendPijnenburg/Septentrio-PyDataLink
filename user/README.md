@@ -30,12 +30,13 @@
 ## TABLE OF CONTENTS
 * [What is this guide about](#what-is-this-guide-about)
 * [Installation](#installation)
-* [Getting Started]()
-    * [Graphical Interface](#graphical-interface)
-    * [Command Line](#command-line-interface)
-    * [Terminal Interface](#terminal-interface)
+* [Graphical Interface](#graphical-interface)
+* [Headless Interface](#headless-interface)
+* [Command Line](#command-line-interface)
+* [Terminal Interface](#terminal-interface)
 * [Other Parameter](#other-parameter)
 * [Use Case scenario](#)
+
 # What is this guide about
 This guide explains how to use pyDatalink software. It comes with 4 types of interface:
 - Graphical Interface
@@ -47,6 +48,7 @@ These interfaces are used to configure connections, launch them and, if necessar
 <div align="center">
 <img src="doc_sources/pyDatalink.PNG" >
 </div>
+
 # Installation
 As pyDatalink app is entirely developed with python, you must first install python and all its dependencies.
 ## Install Python 
