@@ -212,7 +212,8 @@ class NtripClient:
             raise SendRequestError("Failed to send request") from e
         try :
             response = self._receive_response()
-            self.log_file.debug("return value from the request :  %s", response)
+            if self.log_file is not None :
+                self.log_file.debug("return value from the request :  %s", response)
 
         except ReceiveRequestError as e:
             if self.log_file is not None :
