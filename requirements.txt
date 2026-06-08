@@ -1,3 +1,5 @@
+flask
+pyinstaller
 pyserial==3.5
 PySide6
 PySide6_Addons
