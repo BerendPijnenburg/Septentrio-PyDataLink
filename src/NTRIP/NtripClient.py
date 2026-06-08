@@ -245,7 +245,8 @@ class NtripClient:
             try :
                 data = self.socket.recv(4096)
                 if not data:
-                    self.log_file.debug("breaking because no data received : %s", data)
+                    if self.log_file is not None :
+                        self.log_file.debug("breaking because no data received : %s", data)
                     break
                 response += data.decode(encoding='ISO-8859-1')
                 if self.log_file is not None :
@@ -255,7 +256,8 @@ class NtripClient:
                 #    break
                 #if "\r\n\r\n" in response and "ENDSOURCETABLE" in response :
                 if "\r\n\r\n" in response and "sourcetable" not in response and "SOURCETABLE" not in response :
-                    self.log_file.debug("breaking because sourcetable not in response : %s", response)
+                    if self.log_file is not None :
+                        self.log_file.debug("breaking because sourcetable not in response : %s", response)
                     break
             except Exception as e :
                 raise ReceiveRequestError(e) from e
