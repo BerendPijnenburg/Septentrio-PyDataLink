@@ -56,7 +56,8 @@ def create_conf_file(app):
     
     for stream  in app.stream_list :
         section_name = "Port"+str(stream.stream_id)
-        # config.add_section(section_name)
+        if not config.has_section(section_name):
+            config.add_section(section_name)
         config.set(section_name,"linksChecked" , str(stream.linked_ports))
         config.set(section_name,"startup_script" ,str(stream.send_startup_script ))
         config.set(section_name,"startupScriptFile" , stream.startup_script)
@@ -125,6 +126,8 @@ def save_preferences_config(preferences : Preferences , section_name : str,save_
     """
         Add current preference values in the config_file
     """
+    if not save_config_file.has_section(section_name):
+        save_config_file.add_section(section_name)
     save_config_file.set(section_name , "config_name" ,str(preferences.config_name))
     save_config_file.set(section_name,"numberOfPortPanels",str(preferences.max_streams))
     save_config_file.set(section_name,"line_termination",preferences.line_termination.replace("\n","\\n").replace("\r","\\r"))

@@ -29,6 +29,7 @@
 
 from enum import Enum
 import logging
+import os
 from serial import Serial
 import serial.tools.list_ports
 from serial.serialutil import SerialException
@@ -111,6 +112,7 @@ class SerialSettings:
         
         """
         self.port :str = port
+        self.alias :str = ""
         self.baudrate : BaudRate = baudrate
         self.parity : Parity  = parity
         self.stopbits : StopBits = stopbits
@@ -177,6 +179,16 @@ class SerialSettings:
             newport (str): The new port name.
         """
         self.port = newport
+        # Check whether there is a symbolic link to the /dev/ttyACM* device
+        # and if there is, add the alias
+        self.alias = ""
+        if self.port.startswith("/dev/ttyACM"):
+            for entry in os.listdir("/dev"): 
+                full_path = os.path.join("/dev", entry) 
+                if os.path.islink(full_path): 
+                    link_target = os.path.realpath(full_path) 
+                    if link_target == os.path.realpath(self.port): 
+                        self.alias = entry
 
     def set_baudrate(self, newbaudrate : BaudRate):
         """
@@ -231,4 +243,4 @@ class SerialSettings:
             str: class as string
         """
         parity = self.parity.name.replace("PARITY_","")
-        return f"Port : {self.port} \n BaudRate :{self.baudrate.value} \n Parity : {parity} \n StopBits : {self.stopbits.value} \n ByteSize : {self.bytesize.value} \n rtscts : {self.rtscts}"  
+        return f"Port : {self.port} {self.alias}\nBaudRate :{self.baudrate.value} \nDataBits/Parity/StopBits : {self.bytesize.value}{parity}{self.stopbits.value} \nRts-Cts : {self.rtscts}"  

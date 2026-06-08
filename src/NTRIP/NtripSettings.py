@@ -272,4 +272,4 @@ class NtripSettings:
     def to_string(self) ->str :
         """Return settings as a single string
         """
-        return f"Host : {self.host} \n Port : {self.port} \n Username : {self.username} \n Password : {self.password} \n Mountpoint : {self.mountpoint} \n"
+        return f"Host : {self.host} \nPort : {self.port} \nUsername : {self.username} \nPassword : xxxxxxxxx \nMountpoint : {self.mountpoint} \n"

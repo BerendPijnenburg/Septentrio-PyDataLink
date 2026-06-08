@@ -150,4 +150,4 @@ class TcpSettings:
         Returns:
             str: class as string
         """
-        return f" Host : {self.host} \n Port :{self.port} \n StreamMode : {self.stream_mode.value}"
+        return f" Host : {self.host} \nPort :{self.port} \nStreamMode : {self.stream_mode.value}"

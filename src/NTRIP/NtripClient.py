@@ -34,6 +34,7 @@ import logging
 from .NtripSourceTable import NtripSourceTable
 from .NtripSettings import NtripSettings, NtripSettingsException
 from ..constants import DEFAULTLOGFILELOGGER
+import src.UserInterfaces.NmeaMsgShare as NmeaMsgShare
 
 RAD2DEGREES = 180.0 / 3.141592653589793
 
@@ -63,7 +64,6 @@ class ConnectRequestError(NtripClientError):
 class ClosingError(NtripClientError):
     """Error while closing the connection with NTRIP Caster
     """
-
 
 class NtripClient:
     """Class for a ntrip client 
@@ -100,7 +100,9 @@ class NtripClient:
 
     def send_nmea(self, nmea_message):
         """Sending nmea message to the ntrip caster
-        """
+        """   
+        NmeaMsgShare.last_nmea_message_sent_to_caster = nmea_message.strip()
+        
         if self.ntrip_settings.ntrip_version == 2 :
             request = "GET /"+ self.ntrip_settings.mountpoint +" HTTP/1.1\r\n"
         else :
@@ -155,6 +157,8 @@ class NtripClient:
             raise SourceTableRequestError("Failed to send header") from e
         try :
             response : str = self._receive_response()
+            #debug
+            self.log_file.debug(response)
         except ReceiveRequestError as e :
             if self.log_file is not None :
                 self.log_file.error("Failed to read source table : %s" ,e)
@@ -165,14 +169,16 @@ class NtripClient:
             # Parse the response to extract the resource table
             source_table : list[NtripSourceTable]= []
             response : str= response.split("\r\n\r\n")[1]
+            #self.log_file.debug(response)
             sources = response.split("STR;")
             
-            if len(sources) <= 2 :
+            if len(sources) < 2 :
                 if self.log_file is not None :
-                    self.log_file.debug("returned source table empty")
+                    self.log_file.debug("Returned source table empty")
                 return source_table
             sources.pop(0)
-            sources.pop()
+            #JDT : this throws away the last mountpoint- comment it out.
+            #sources.pop()
             for source in sources :
                 newsourcetable = source.split(";")
                 source_table.append(NtripSourceTable(newsourcetable[0],newsourcetable[1],newsourcetable[2],newsourcetable[3]))
@@ -183,7 +189,7 @@ class NtripClient:
             return source_table
         else :
             if self.log_file is not None :
-                self.log_file.error("The return value is inccorect")
+                self.log_file.error("The return value is incorrect")
                 self.log_file.debug("NTRIP Caster response : %s",response)
             raise SourceTableRequestError("Error in returned source table")
 
@@ -239,9 +245,17 @@ class NtripClient:
             try :
                 data = self.socket.recv(4096)
                 if not data:
+                    self.log_file.debug("breaking because no data received : %s", data)
                     break
                 response += data.decode(encoding='ISO-8859-1')
-                if "\r\n\r\n" in response and "sourcetable" not in response :
+                if self.log_file is not None :
+                    self.log_file.debug("data :  %s", data)
+                    self.log_file.debug("response :  %s", response)
+                #if (len(data) < 4096):
+                #    break
+                #if "\r\n\r\n" in response and "ENDSOURCETABLE" in response :
+                if "\r\n\r\n" in response and "sourcetable" not in response and "SOURCETABLE" not in response :
+                    self.log_file.debug("breaking because sourcetable not in response : %s", response)
                     break
             except Exception as e :
                 raise ReceiveRequestError(e) from e
@@ -302,4 +316,3 @@ class NtripClient:
                 self.update_source_table()
             except SourceTableRequestError as e :
                 raise e
-        

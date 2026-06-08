@@ -7,7 +7,12 @@
 </div>
 <br>
 
-**Note : This tool is currently under testing. Feel free to provide feedback <a href="https://forms.office.com/e/UqdAs4hfF3 ">here</a> or file an issue in this Github repository.**
+**Note : This tool is currently under testing. Feel free to provide feedback <a href="https://forms.office.com/e/UqdAs4hfF3 ">here</a> or file an issue in this Github repository.
+The main differences between this fork and its parent are:
+- developed and tested for Raspberry Pi 5 environment
+- addition of a headless mode that allows pydatalink to do its magic without being connected to a PC
+**
+
 ## AUTHORS
   
 | Name | GitHub |
@@ -18,7 +23,7 @@
   
 | GitHub |
 |--------|
-| <a href="https://github.com/septentrio-users">septentrio-users</a> </br> |    
+| <a href="https://github.com/SeptenJDT">Jan_De_Turck</a> </br> |    
 
 ## DO YOU HAVE ANY QUESTIONS? CONTACT SEPTENTRIO SUPPORT TEAM
 
@@ -69,7 +74,7 @@ The second major feature of this version is that the code is entirely open sourc
 <br>
 
 These are the major features of PyDataLink:
- - Connecivity for up to 6 parallel connections: TCP , UDP , Serial: Handy for GNSS receivers or other sensors/systems
+ - Connectivity for up to 6 parallel connections: TCP , UDP , Serial: Handy for GNSS receivers or other sensors/systems
  - Support for NTRIP Client including TLS support
  - Logging of data passing through the connection
  - Automatic configuration scrips at connection and/or disconnection (handy to automatically configure GNSS receivers or other sensors)
@@ -106,7 +111,7 @@ Once you've installed python, all you have to do is download the source code and
 
 ### Using git clone
 ```
-git clone https://github.com/septentrio-gnss/Septentrio-PyDataLink.git
+git clone https://github.com/SeptenJDT/Septentrio-PyDataLink
 cd Septentrio-PyDataLink
 ```
 ### using GitHub
@@ -118,52 +123,51 @@ to build and generate the executable file  , run the folowing command
 ```
 python build.py
 ```
-After the build is successfully completed , a executable file will be generated 
+After the build is successfully completed , a PyDataLink executable file will be generated.
+The first time you build the project a virtual environment will be made and necessary libraries will be installed. The second time this will be skipped. Additionally, using the --skip_requirements parameter it is possible to eliminate checking for package installations in order to speed up the build process.
+```
+python build.py --skip_requirements
+```
 
 <br>
 
 # How to use guides
 
 As this project is open source, two guides are available: 
-- a guide for users which describe all the available functionnalities
+- a guide for users which describe all the available functionalities
 - a developer's guide which explains how the program is structured and how it works 
 
-The purpose of the user guide is to explain how to install the application, how to use it and also to present the various functionnalities. 
+The purpose of the user guide is to explain how to install the application, how to use it and also to present the various functionalities. 
 
 <div align="center">
 
-| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/user">Go to User Manual</a> |
+| <a href="https://github.com/SeptenJDT/Septentrio-PyDataLink/tree/main/user">Go to User Manual</a> |
 |---|
 
 </div>
 
 
-The purpose of the development guide is to explain how the code is structured, how the programme works and how it was made. This guide is mainly intended for people who want to keep the programme up to date. 
+The purpose of the development guide is to explain how the code is structured, how the program works and how it was made. This guide is mainly intended for people who want to keep the program up to date. 
 
 <div align="center">
 
-| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to developper Guide</a> |
+| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to developer Guide</a> |
 |---|
 
 </div>
 
 ## Informations
 ### Tested Platforms
-The current version of pyDatalink has been tested on the following plateform :
+The current version of pyDatalink has been tested on the following platform :
 - Raspberry Pi OS 64bit with Desktop - kernel : 6.6 ( Raspberry pi 4)
+- Raspberry Pi 5 OS Debian GNU/Linux 12 (bookworm) - kernel : Linux 6.12.47+rpt-rpi-2712
 - Windows 10 *(GUI & CMD only)*
 
 ### Tested Package version
 The current version of pyDatalink has been tested with the following packages version : 
 - Python 3.11.2 and 3.12.3 
 - pyserial 3.5
-- PySide6 6.7.0 
-- PySide6_Addons 6.7.0
-- PySide6_Essentials 6.7.0
-- shiboken6 6.7.0
-- simple-term-menu 1.6.4
-- typing_extensions 4.11.0
-
-
-
-
+- PySide6 6.8.0.2
+- PySide6_Addons 6.8.0.2
+- PySide6_Essentials 6.8.0.2
+- shiboken6 6.8.0.2

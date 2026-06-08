@@ -57,7 +57,7 @@ def conf_file_preference(preference : Preferences ,conf_file : configparser.Sect
         Configure preferences value with data form a config file
     """
     if preference is None :
-        raise PreferencesMissingException("the preference can't be empty")
+        raise PreferencesMissingException("The preference can't be empty")
     try :
         preference.max_streams =  int(conf_file.get("numberOfPortPanels"))
     except (TypeError, ValueError):
@@ -68,7 +68,7 @@ def conf_file_preference(preference : Preferences ,conf_file : configparser.Sect
         except (TypeError, ValueError) :
             pass
     try :
-        preference.line_termination  = str(conf_file.get("linetermination")).replace("\\n","\n").replace("\\r","\r")
+        preference.line_termination  = str(conf_file.get("line_termination")).replace("\\n","\n").replace("\\r","\r")
     except (TypeError, ValueError) :
         pass
     try:
@@ -102,12 +102,12 @@ def conf_file_config(stream : Stream ,conf_file : configparser.SectionProxy) :
             stream.linked_ports.append(int(link))
     stream.startup_script = conf_file.get("startupscriptfile")
     try :
-        stream.send_startup_script = True if str(conf_file.get("startupscript")).lower() == "true" else False
+        stream.send_startup_script = True if str(conf_file.get("startup_script")).lower() == "true" else False
     except (TypeError, ValueError):
         stream.send_startup_script = False
     stream.close_script = conf_file.get("closescriptfile")
     try :
-        stream.send_close_script = True if str(conf_file.get("closescript")).lower() == "true" else False
+        stream.send_close_script = True if str(conf_file.get("close_script")).lower() == "true" else False
     except (TypeError, ValueError): 
         stream.send_close_script = False
     stream.logging_file = conf_file.get("logfile")

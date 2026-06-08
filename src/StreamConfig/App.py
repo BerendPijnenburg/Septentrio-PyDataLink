@@ -30,12 +30,13 @@
 import configparser
 from enum import Enum
 import queue
+import logging
 
 from ..NTRIP.NtripClient import NtripClientError
 from .Preferences import Preferences
 from .Stream import Stream
 from ..Configuration import SaveConfiguration , CommandLineConfiguration , FileConfiguration
-
+from ..constants import DEFAULTLOGFILELOGGER
 
 class AppException(Exception):
     """
@@ -79,6 +80,10 @@ class App :
         self.stream_list : list[Stream] = []
         self.linked_data : list[queue.Queue] = []
         self.debug_logging : bool = debug_logging 
+        if debug_logging :
+            self.log_file : logging.Logger = DEFAULTLOGFILELOGGER
+        else :
+            self.log_file = None
         self.configuration_type : ConfigurationType = configuration_type
 
         for i in range (self.max_stream) :
@@ -116,6 +121,7 @@ class App :
                             FileConfiguration.conf_file_preference(self.preferences, config[key] )
                         if "Port" in key :
                             if next_stream_id < self.max_stream :
+                                self.log_file.info(f"Configuring port {key}")
                                 FileConfiguration.conf_file_config(self.stream_list[next_stream_id],config[key])
                                 next_stream_id +=1
                     for port_id, value  in enumerate(self.preferences.connect):
