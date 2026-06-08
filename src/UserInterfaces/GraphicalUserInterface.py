@@ -494,6 +494,7 @@ class ConfigureInterface(QDialog) :
             for port in ports :
                 # Check whether there is a symbolic link to the /dev/ttyACM* device
                 # and if there is, add it to the list instead of the /dev/ttyACM* device
+                port_listed = False
                 if port[0].startswith("/dev/ttyACM"):
                     for entry in os.listdir("/dev"): 
                         full_path = os.path.join("/dev", entry) 
@@ -501,7 +502,8 @@ class ConfigureInterface(QDialog) :
                             link_target = os.path.realpath(full_path) 
                             if link_target == os.path.realpath(port[0]): 
                                 available_port_list.addItem(entry,port[0])
-                else :
+                                port_listed = True
+                if not port_listed :
                     available_port_list.addItem(port[0].replace("/dev/ttyACM","ttyACM") + " - " + port[1].split("-")[0],port[0])
             available_port_list.setCurrentIndex(-1)
         else :
