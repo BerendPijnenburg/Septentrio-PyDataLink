@@ -30,12 +30,17 @@ import logging
 import os
 import datetime
 import sys
+import platform
 
 if getattr(sys, 'frozen', False):
     PROJECTPATH = sys._MEIPASS
     DATAFILESPATH = os.path.join(PROJECTPATH, "data" )
 else:
-    PROJECTPATH = os.path.abspath(os.path.dirname(__file__)).replace("\\src","") #Path to the project folder
+    # print(f"Running on {platform.system()}")
+    if platform.system() == "Windows":
+        PROJECTPATH = os.path.abspath(os.path.dirname(__file__)).replace("\\src","") #Path to the project folder
+    else:
+        PROJECTPATH = os.path.abspath(os.path.dirname(__file__)).replace("/src","") #Path to the project folder
     DATAFILESPATH = os.path.join(PROJECTPATH , "src" , "Data Files" )
     
 
@@ -62,6 +67,9 @@ if os.path.exists( LOGFILESPATH ) is not True:
 # Create logging file for the app
 now = datetime.datetime.now()
 filename = now.strftime("pyDatalink_%Y-%m-%d_%H-%M.log")
-DEFAULTLOGFILEPATH = LOGFILESPATH + "\\" + filename
+if platform.system() == "Windows":
+    DEFAULTLOGFILEPATH = LOGFILESPATH + "\\" + filename
+else:
+    DEFAULTLOGFILEPATH = LOGFILESPATH + "/" + filename
 logging.basicConfig(filename= DEFAULTLOGFILEPATH, encoding='utf-8', level=logging.DEBUG, format='[%(asctime)s] %(levelname)s : %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 DEFAULTLOGFILELOGGER = logging.getLogger("PyDatalink")

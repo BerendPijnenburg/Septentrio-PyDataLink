@@ -112,21 +112,21 @@ def config_ntrip_stream(stream : Stream ,command_config : str ):
     Args:
         command_config (str): configuration line
     """
-    credentials = command_config.split("@")[0].split(":")
+    credentials = command_config.rsplit("@", 1)[0].split(":")
     if len(credentials) != 2 :
         raise MissingParameterException("Missing a credential paremeter !")
 
-    host = command_config.split("@")[1].split(":")
+    host = command_config.rsplit("@", 1)[1].split(":")
     if len(host) != 2:
         raise MissingParameterException("Missing a host paremeter !")
 
-    mountpoint = command_config.split("@")[1].split("/")
+    mountpoint = command_config.rsplit("@", 1)[1].split("/")
     if len(mountpoint) != 2:
         raise MissingParameterException("Missing a MountPoint paremeter !")
 
     try :
         settings = NtripSettings(host = host[0], port = int(host[1].split("/")[0]),
-                                 auth= (True if len(credentials[0]) > 0 and len(credentials[1]) > 0  else False),
+                                 auth= len(credentials[0]) > 0,
                                  username= credentials[0],password= credentials[1],
                                  mountpoint=mountpoint[1])
         stream.ntrip_client = NtripClient(settings)

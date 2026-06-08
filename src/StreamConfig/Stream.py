@@ -177,9 +177,10 @@ class Stream:
                     try:
                         self.stream = self.serial_settings.connect()
                         self.connected = True
+                        self.stream_type = StreamType.Serial
                         task = self.datalink_serial_task
                         if self.log_file is not None :
-                            self.log_file.info("Stream %s : Stream openned successfully " , self.stream_id)
+                            self.log_file.info("Stream %s : Stream opened successfully " , self.stream_id)
                     except SerialSettingsException as e:
                         if self.log_file is not None :
                             self.log_file.error("Stream %s : Failed to connect to the serial port : %s" , self.stream_id,e)
@@ -199,12 +200,13 @@ class Stream:
                         socket.gethostbyname(self.tcp_settings.host)
                         self.stream = self.tcp_settings.connect()
                         self.connected = True
+                        self.stream_type = StreamType.TCP
                         if self.tcp_settings.stream_mode == StreamMode.SERVER:
                             task = self.datalink_tcp_server_task
                         else :
                             task = self.datalink_tcp_client_task
                         if self.log_file is not None :
-                            self.log_file.info("Stream %s : Stream openned successfully " , self.stream_id)
+                            self.log_file.info("Stream %s : Stream opened successfully " , self.stream_id)
                     except TCPSettingsException as e :
                         self.stream = None
                         self.connected = False
@@ -220,11 +222,12 @@ class Stream:
                 else:
                     try:
                         self.connected = True
+                        self.stream_type = StreamType.UDP
                         socket.gethostbyname(self.tcp_settings.host)
                         self.stream = self.udp_settings.connect()
                         task = self.datalink_udp_task
                         if self.log_file is not None :
-                            self.log_file.info("Stream %s : Stream openned successfully " , self.stream_id)
+                            self.log_file.info("Stream %s : Stream opened successfully " , self.stream_id)
                     except UDPSettingsException as e:
                         self.stream = None
                         self.connected = False
@@ -235,20 +238,21 @@ class Stream:
             elif stream_type == StreamType.NTRIP:
                 if self.ntrip_client is None or len(self.ntrip_client.ntrip_settings.host.replace(" ","")) == 0 :
                     if self.log_file is not None :
-                        self.log_file.error("Stream %s : Failed to open NTRIP stream : Incorect Settings " , self.stream_id)
-                    raise MissingSettingsException("ntrip client is not set !")
+                        self.log_file.error("Stream %s : Failed to open NTRIP stream : Incorrect Settings " , self.stream_id)
+                    raise MissingSettingsException("Ntrip client is not set !")
                 else:
                     try:
                         socket.gethostbyname(self.ntrip_client.ntrip_settings.host)
                         self.ntrip_client.connect()
                         self.stream = self.ntrip_client
                         self.connected = True
+                        self.stream_type = StreamType.NTRIP
                         task = self.datalink_ntrip_task
                         if self.ntrip_client.ntrip_settings.fixed_pos:
                             self.ntrip_client.create_gga_string()
 
                         if self.log_file is not None :
-                            self.log_file.info("Stream %s : Stream openned successfully " , self.stream_id)
+                            self.log_file.info("Stream %s : Stream opened successfully " , self.stream_id)
                     except (NtripClientError,NtripSettingsException) as e:
                         self.stream = None
                         self.connected = False
@@ -256,10 +260,12 @@ class Stream:
                             self.log_file.error("Stream %s : Failed to open NTRIP stream: %s" , self.stream_id,e)
                         raise OpenConnectionError(f"Failed to open NTRIP Stream : {e}") from e
             elif stream_type == StreamType.NONE :
+                self.stream_type = StreamType.NONE
                 if self.log_file is not None :
                     self.log_file.error("Stream %s : no configuration yet " , self.stream_id)
                     raise InvalidStreamTypeException(" No configuration selected ")
             else:
+                self.stream_type = StreamType.NONE
                 if self.log_file is not None :
                     self.log_file.error("Stream %s : Invalid Stream Type " , self.stream_id)
                 raise InvalidStreamTypeException(f" {stream_type.name} is not a valid Stream type !")
@@ -271,10 +277,11 @@ class Stream:
                     self.stop_event.clear()
                     self._clear_queue(self.linked_data[self.stream_id])
                     if self.logging :
-                        self.logger = open(self.logging_file,"w",encoding="utf-8")
+                        # JDT : append instead of overwrite every time
+                        self.logger = open(self.logging_file,"a",encoding="utf-8")
 
                         if self.log_file is not None :
-                            self.log_file.debug("Stream %s : init loggin file :  %s" , self.stream_id,self.logging_file)
+                            self.log_file.debug("Stream %s : init logging file :  %s" , self.stream_id,self.logging_file)
 
                     if self.send_startup_script:
 
@@ -421,6 +428,9 @@ class Stream:
         """
         send a command to ouput
         """
+        if not command.endswith(self.line_termination):
+            command += self.line_termination
+        self.log_file.info("Sendcommand with line termination %s ",command)
         self.linked_data[self.stream_id].put(command)
     # Getter & Setter
 
@@ -510,7 +520,7 @@ class Stream:
         Args:
             new_file_name (str): the new file name of the logging file
         """
-        if os.path.exists(new_file_name):
+        if os.path.dirname(new_file_name) == "" or os.path.exists(os.path.dirname(new_file_name)):
             self.logging_file = new_file_name
         else :
             if self.log_file is not None :
@@ -951,6 +961,7 @@ class Stream:
         try:
             if self.ntrip_client.ntrip_settings.fixed_pos :
                 self.linked_data[self.stream_id].put(self.ntrip_client.fixed_pos_gga)
+                last_gga_time = time.time()
             if not self.linked_data[self.stream_id].empty():
                 task_send_command(self.linked_data[self.stream_id],ntrip ,logger=logger,line_termination=self.line_termination)
         except TaskException as e :
@@ -985,7 +996,11 @@ class Stream:
                         if linked_ports is not None:
                             for portid in linked_ports:
                                 linked_data[portid].put(incoming_data.decode(encoding='ISO-8859-1'))
-                    #Send output data comming from other streams and print data if showdata is set
+                    #Send a new GGA to the NTRIP every minute to avoid that the data stops coming during a long test
+                    if self.ntrip_client.ntrip_settings.fixed_pos and  time.time() - last_gga_time > 60 :
+                        self.linked_data[self.stream_id].put(self.ntrip_client.fixed_pos_gga)
+                        last_gga_time = time.time()
+                    #Send output data coming from other streams and print data if showdata is set
                     if not linked_data[self.stream_id].empty():
                         returnedValue = task_send_command(linked_data[self.stream_id],ntrip ,self.show_outgoing_data.is_set(),data_to_show=data_to_show,logger=logger,line_termination=self.line_termination)
                         if returnedValue is not None :

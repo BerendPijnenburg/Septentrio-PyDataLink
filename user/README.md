@@ -11,7 +11,7 @@
   
 | GitHub |
 |--------|
-| <a href="https://github.com/septentrio-users">septentrio-users</a> </br> |    
+| <a href="https://github.com/SeptenJDT">Jan De Turck</a> </br> |    
 
 ## DO YOU HAVE ANY QUESTIONS? CONTACT SEPTENTRIO SUPPORT TEAM
 
@@ -30,22 +30,24 @@
 ## TABLE OF CONTENTS
 * [What is this guide about](#what-is-this-guide-about)
 * [Installation](#installation)
-* [Getting Started]()
-    * [Graphical Interface](#graphical-interface)
-    * [Command Line](#command-line-interface)
-    * [Terminal Interface](#terminal-interface)
+* [Graphical Interface](#graphical-interface)
+* [Headless Interface](#headless-interface)
+* [Command Line](#command-line-interface)
+* [Terminal Interface](#terminal-interface)
 * [Other Parameter](#other-parameter)
-* [Use Case scenario](#)
+
 # What is this guide about
-This guide explains how to use pyDatalink software. It comes with 3 types of interface:
+This guide explains how to use pyDatalink software. It comes with 4 types of interface:
 - Graphical Interface
 - Command Line
 - Terminal Interface
+- Headless Interface
 
 These interfaces are used to configure connections, launch them and, if necessary, link them together. 
 <div align="center">
 <img src="doc_sources/pyDatalink.PNG" >
 </div>
+
 # Installation
 As pyDatalink app is entirely developed with python, you must first install python and all its dependencies.
 ## Install Python 
@@ -71,22 +73,30 @@ Once you've installed python, all you have to do is download the source code and
 
 ### Using git clone
 ```
-git clone https://github.com/septentrio-gnss/Septentrio-PyDataLink.git
+git clone https://github.com/SeptenJDT/Septentrio-PyDataLink.git
 cd Septentrio-PyDataLink
 ```
 ### Using GitHub
  - First click on **code**.<br>
  - Then click on **dowload Zip**
-### (Optional) Create a Virtual environement
-This will allow you to create a contained workspace where every python package will be installed
+
+### Build the application
 ```
-python -m venv venv
-source venv/bin/activate
+python build.py
 ```
-### Install Python packages 
+
+### Launch the application
 ```
-pip install -r requirements.txt
+#For the graphical interface
+./PyDataLink -m GUI 
+#For the terminal interface
+./PyDataLink -m TUI 
+#For the command line interface
+./PyDataLink -m CUI parameters... 
+#For the headless interface
+./PyDataLink -m HEADLESS 
 ```
+
 # Graphical Interface
 <div align="center">
 <img src="doc_sources/pyDatalink_GUI.PNG" >
@@ -114,6 +124,79 @@ or
 ```
 python pyDatalink.py
 ```
+# Headless Interface
+After setting up PyDataLink using the Terminal or Graphical interface, this mode allows you to start up PyDataLink automatically as a service. There is no need to connect with RealVNC or SSH.
+
+## Mapping Septentrio devices to deterministic values
+Normally, a Septentrio device will be mapped to /dev/ttyACM0 (USB1) and /dev/ttyACM1 (USB2). However, this is not deterministic. E.g. if you connect two or more Septentrio devices, USB1 of device 1&2 will be mapped to /dev/ttyACM0&1, and USB2 of those devices will be mapped to /dev/ttyACM2&3. In order to more easily recognize to which USB port of which device you connect, it is advised to add symbolic link rules. 
+```
+sudo nano /etc/udev/rules.d/99-septentrio.rules
+```
+and paste in this file below rules
+```
+SUBSYSTEMS=="usb", ATTRS{bInterfaceNumber}=="02", TAG="USB1"
+SUBSYSTEMS=="usb", ATTRS{bInterfaceNumber}=="04", TAG="USB2"
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="85c0", TAG=="USB1", SYMLINK+="X5_%s{serial}_1"
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="85c0", TAG=="USB2", SYMLINK+="X5_%s{serial}_2"
+SUBSYSTEMS=="usb", ATTRS{bInterfaceNumber}=="00", TAG="USB1"
+SUBSYSTEMS=="usb", ATTRS{bInterfaceNumber}=="02", TAG="USB2"
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="8231", TAG=="USB1", SYMLINK+="G5_%s{serial}_1"
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="8231", TAG=="USB2", SYMLINK+="G5_%s{serial}_2"
+```
+After this you can either reboot or execute below commands
+```
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+After doing this, the USB1 interface of a mosaic G5 module will show up as "G5_serialno_1", etc.
+It is impossible to distinguish between a G5 P3 or G5 P3H. And for the same reason also not between a mosaic-X5 or mosaic CLAS
+
+## Setting up PyDataLink as a service
+Make a file for the service 
+```
+sudo nano /etc/systemd/system/pydatalink.service
+```
+Paste below information into the file (adjust the user). You might also need to change the NetworkManager-wait-online.service to dhcpcd-wait-online.service. You can check which service is used on your pi with systemctl status xxxx.service
+```
+[Unit]
+Description=Start PyDataLink in headless mode
+After=network-online.target NetworkManager-wait-online.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/ssn/Septentrio-PyDataLink/PyDataLink -m HEADLESS
+Restart=always
+User=ssn
+WorkingDirectory=/home/ssn/Septentrio-PyDataLink
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+Now enable/start/check the service
+```
+sudo systemctl enable pydatalink.service
+sudo systemctl start pydatalink.service
+sudo systemctl status pydatalink.service
+```
+You should see something like below
+```
+pydatalink.service - Start PyDataLink in headless mode
+     Loaded: loaded (/etc/systemd/system/pydatalink.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2026-01-09 10:32:24 JST; 4s ago
+   Main PID: 48631 (PyDataLink)
+      Tasks: 4 (limit: 9577)
+        CPU: 3.650s
+     CGroup: /system.slice/pydatalink.service
+             ├─48631 /home/ssn/Septentrio-PyDataLink/PyDataLink -m HEADLESS
+             └─48652 /home/ssn/Septentrio-PyDataLink/PyDataLink -m HEADLESS
+
+Jan 09 10:32:24 ssn-pi5 systemd[1]: Started pydatalink.service - Start PyDataLink in headless mode.
+```
+Once the service is enabled, it will automatically start next time the Raspberry Pi is rebooted.
+In HEADLESS mode, PyDataLink will automatically retry to connect to its configured devices if those are not available at startup.
+
 # Command Line Interface
 <div align="center">
 <img src="doc_sources/Command_Interface.PNG">
@@ -191,7 +274,7 @@ python pyDatalink.py -m TUI
 On this menu you can find the following items :
 
 * [Configuration](#Configure)
-* [connect / disconnect](#connect-disconnect)
+* [Connect / Disconnect](#connect-disconnect)
 * [ShowData](#Show-Data)
 * [Link](#Link)
 * [Preferences](#Preferences)
@@ -230,8 +313,8 @@ The Configure menu allow you to choose the type of communication you want to use
 ### NTRIP Settings
 | Parameter | Possible Values | Default Value | Description |
 |:-----------:|:-----------------:|:---------------:|:-------------:|
-| User | any User Name |- | username used for the authentification with the ntrip server |
-| Password | Any Password | - | Password used for the authentification with the ntrip server |
+| User | any User Name |- | username used for the authentication with the ntrip server |
+| Password | Any Password | - | Password used for the authentication with the ntrip server |
 | Hostname      | Any hostname given by a ntrip service provider | -   | The Hostname of the ntrip service provider |
 | Port      | Any available port | - | The port number of the ntrip service provider |
 | MountPoint | *Contact your ntrip service provider* | - | Mountpoint of the ntrip server , depend on the provider |
@@ -264,7 +347,7 @@ This menu allows you to change some parameters of the app. This parameter can ra
 | Parameter | Possible Values | Default Value | Description |
 |:-----------:|:-----------------:|:---------------:|:-------------:|
 | Number of stream | from 1 to 6 | **6**  | Number of stream that you can configure |
-| Password | Any Password | - | Password used for the authentification with the ntrip server |
+| Password | Any Password | - | Password used for the authentication with the ntrip server |
 | Hostname      | Any hostname given by a ntrip service provider | -   | The Hostname of the ntrip service provider |
 | Port      | Any available port | - | The port number of the ntrip service provider |
 | MountPoint | *Contact your ntrip service provider* | - | Mountpoint of the ntrip server , depend on the provider |
@@ -287,12 +370,12 @@ pyDatalink comes with configuration parameters that alow you to run the app with
 
 </div>
 
-# Developper Manual
+# Developer Manual
 The purpose of the development manual is to explain how the code is structured, how the programme works and how it was made. This manual is mainly intended for people who want to keep the programme up to date. 
 
 <div align="center">
 
-| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to Developper Manual</a> |
+| <a href="https://github.com/septentrio-gnss/Septentrio-PyDataLink/tree/main/dev">Go to Developer Manual</a> |
 |---|
 
 </div>

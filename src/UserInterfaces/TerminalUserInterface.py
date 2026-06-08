@@ -47,16 +47,16 @@ except NotImplementedError as e :
 class TerminalUserInterface :
 
     # Menu Items
-    main_menu_items = ["[1] - Configure Stream" , "[2] - connect / disconnect",
+    main_menu_items = ["[1] - Configure Stream" , "[2] - Connect / Disconnect",
                        "[3] - ShowData" ,"[4] - Link","[5] - Preferences","[q] - Exit"]
 
-    connect_disconect_items=["[1] - connect","[2] - disconnect" ,"[q] - Back to stream selection"]
-    show_data_menu_items=["[1] - show all data","[2] - Show Input data" ,
+    connect_disconect_items=["[1] - Connect","[2] - Disconnect" ,"[q] - Back to stream selection"]
+    show_data_menu_items=["[1] - Show all data","[2] - Show Input data" ,
                           "[3] - Show Output data","[q] - Back to stream selection"]
 
     port_list_menu_items = ["[q] - Back to main menu"]
 
-    configure_menu_submenu_items = ["[1] - Stream Config","[2] - connect Script",
+    configure_menu_submenu_items = ["[1] - Stream Config","[2] - Connect Script",
                                     "[3] - Close Script" ,"[4] - Logging" , "[q] - Back to stream selection"]
 
     configure_stream_type_menu_items=[]
@@ -74,7 +74,7 @@ class TerminalUserInterface :
     def __init__(self ,app : App ) -> None:
         self.app : App = app
         for port , i in zip(app.stream_list , range(len(app.stream_list))):
-           self.port_list_menu_items.insert(i,f"[{i}] - Stream {i} - {"Connected" if port.connected else "Disonnected"} {"" if port.stream_type is None else str(port.stream_type).replace("StreamType.","- ")}")
+           self.port_list_menu_items.insert(i,f"[{i}] - Stream {i} - {'Connected' if port.connected else 'Disconnected'} {'' if port.stream_type is None else str(port.stream_type).replace('StreamType.','- ')}")
         self._create_menus()
 
         self.show_data_thread : threading.Thread = None
@@ -90,7 +90,7 @@ class TerminalUserInterface :
     def _refresh_menu_items(self) :
 
         for port , i in zip(self.app.stream_list , range(len(self.app.stream_list))):
-           self.port_list_menu_items[i] = f"[{i}] - Stream {i} - {"Connected" if port.connected else "Disonnected"} {"" if port.stream_type is None else str(port.stream_type).replace("StreamType.","- ")}"
+           self.port_list_menu_items[i] = f"[{i}] - Stream {i} - {'Connected' if port.connected else 'Disconnected'} {'' if port.stream_type is None else str(port.stream_type).replace('StreamType.','- ')}"
 
 
     def _create_menus(self):
@@ -124,7 +124,7 @@ class TerminalUserInterface :
         iterator = 1
         for stream_type in StreamType :
             if stream_type.value is not None:
-                self.configure_stream_type_menu_items.append(f"[{iterator}] - {str(stream_type).replace("StreamType.","")}" )
+                self.configure_stream_type_menu_items.append(f"[{iterator}] - {str(stream_type).replace('StreamType.','')}" )
                 iterator+=1
         self.configure_stream_type_menu_items.append("[q] - Back")
 
@@ -138,7 +138,7 @@ class TerminalUserInterface :
         """Main menu of TUI
         """
         terminal_menu = TerminalMenu(self.main_menu_items ,clear_screen=True,
-                                     title="PyDatalink\n you are using pyDatalink App in Terminal UI mode \n")
+                                     title="PyDatalink\n You are using pyDatalink App in Terminal UI mode \n")
         menu_entry_index = terminal_menu.show()
         match menu_entry_index:
             case 0 : self.configure_menu()
@@ -161,8 +161,8 @@ class TerminalUserInterface :
             return self.main_menu()
         else:
             selected_port : Stream = self.app.stream_list[configure_menu_entry_index]
-            if selected_port.is_connected :
-                print("This port is currently connected , Disonnect before configuration ! \n")
+            if selected_port.is_connected() :
+                print("This port is currently connected , disconnect before configuration ! \n")
                 return self.configure_menu()
             else:
                 return self.configure_menu_submenu(selected_port)
@@ -209,7 +209,7 @@ class TerminalUserInterface :
             iterator = 0
             preferences_startup_connect_menu_items = []
             for startup_connect in self.app.preferences.connect :
-                preferences_startup_connect_menu_items.append(f"[{iterator}] - Stream {iterator} - {"True" if startup_connect else "False"}" )
+                preferences_startup_connect_menu_items.append(f"[{iterator}] - Stream {iterator} - {'True' if startup_connect else 'False'}" )
                 iterator +=1
             preferences_startup_connect_menu_items.append("[q] - Back")
             terminal_menu = TerminalMenu(preferences_startup_connect_menu_items ,clear_screen=False,
@@ -238,7 +238,7 @@ class TerminalUserInterface :
 
         def connect_menu_select_stream_type (selected_port : Stream):
             terminal_menu = TerminalMenu(self.connect_disconect_items ,clear_screen=False,
-                                         title=f" connect Menu : Stream {selected_port.stream_id} {"Connected" if selected_port.connected else "Disconnected"} {self.get_settings_title(selected_port) if selected_port.connected else ""}\n to change the stream type , the stream need to be disconnected\n")
+                                         title=f" connect Menu : Stream {selected_port.stream_id} {'Connected' if selected_port.connected else 'Disconnected'} {self.get_settings_title(selected_port) if selected_port.connected else ''}\n to change the stream type , the stream need to be disconnected\n")
             configure_menu_entry_index = terminal_menu.show()
             match configure_menu_entry_index :
                 case 0 :
@@ -257,7 +257,7 @@ class TerminalUserInterface :
 
         def connect(selected_port : Stream):
             terminal_menu = TerminalMenu(self.configure_stream_type_menu_items ,clear_screen=False,
-                                         title=f"connect Menu : Stream {selected_port.stream_id} {"Connected" if selected_port.connected else "Disconnected"} \n Choose wich type of stream you want\n" )
+                                         title=f"connect Menu : Stream {selected_port.stream_id} {'Connected' if selected_port.connected else 'Disconnected'} \n Choose wich type of stream you want\n" )
             configure_menu_entry_index = terminal_menu.show()
 
             if configure_menu_entry_index is None :
@@ -271,7 +271,7 @@ class TerminalUserInterface :
 
         self._refresh_menu_items()
         terminal_menu = TerminalMenu(self.port_list_menu_items ,
-                                     title="connect Menu : \n Choose which stream you want to enable or disable\n" )
+                                     title="Connect Menu : \n Choose which stream you want to enable or disable\n" )
         configure_menu_entry_index =terminal_menu.show()
         if configure_menu_entry_index is None :
             return self.main_menu()
@@ -352,7 +352,7 @@ class TerminalUserInterface :
             available_link = []
             for port in self.app.stream_list :
                 if port is not selected_port:
-                    available_link.append(f"[{port.stream_id}] - Stream {port.stream_id} {" Linked " if port.stream_id in selected_port.linked_ports else ""}")
+                    available_link.append(f"[{port.stream_id}] - Stream {port.stream_id} {' Linked ' if port.stream_id in selected_port.linked_ports else ''}")
                 else :
                     available_link.append(f"[{port.stream_id}] - Stream {port.stream_id} ( Port can't link itself )")
             available_link.append("[q] - Back")
@@ -360,7 +360,7 @@ class TerminalUserInterface :
 
         available_stream = get_available_link_list(selected_port)
         terminal_menu = TerminalMenu( available_stream,clear_screen=False,
-                                     title="chose Stream for output data\n" ,)
+                                     title="Choose Stream for output data\n" ,)
         link_port_menu_entry_index = terminal_menu.show()
         if link_port_menu_entry_index < len(available_stream)-1 :
             if link_port_menu_entry_index is not  selected_port.stream_id :
@@ -439,7 +439,7 @@ class TerminalUserInterface :
 
             serial_settings_menu_items : list = ["[q] - Back"]
 
-            serial_settings_menu_items.insert(0,f"[1] - Port - {"None" if selected_port.serial_settings.port is None else selected_port.serial_settings.port}")
+            serial_settings_menu_items.insert(0,f"[1] - Port - {'None' if selected_port.serial_settings.port is None else selected_port.serial_settings.port}")
             serial_settings_menu_items.insert(1,f"[2] - BaudRate - {selected_port.serial_settings.baudrate.value}")
             serial_settings_menu_items.insert(2,f"[3] - stopBits - {selected_port.serial_settings.stopbits.value}")
             serial_settings_menu_items.insert(3,f"[4] - Parity - {selected_port.serial_settings.parity.value}")
@@ -542,7 +542,7 @@ class TerminalUserInterface :
 
             udp_settings_menu_items.insert(1,f"[2] - Port - {selected_port.udp_settings.port}")
             udp_settings_menu_items.insert(2,f"[3] - Stream to specific Host - {selected_port.udp_settings.specific_host}")
-            udp_settings_menu_items.insert(3,f"[4] - Data Flow Mode - {str(selected_port.udp_settings.dataflow).replace("DataFlow.","")}")
+            udp_settings_menu_items.insert(3,f"[4] - Data Flow Mode - {str(selected_port.udp_settings.dataflow).replace('DataFlow.','')}")
             udp_settings_menu_items.append("[q] - Back")
             udp_title = f"Configuration Menu : Stream {selected_port.stream_id} \n Current Configuration : \n Host : {selected_port.udp_settings.host}\n Port : {selected_port.udp_settings.port}\n Specific Host : {selected_port.udp_settings.specific_host}\n Data Flow Mode : {str(selected_port.udp_settings.DataFlow).replace('DataFlow.','')}\n"
 
@@ -598,7 +598,7 @@ class TerminalUserInterface :
             ntrip_settings_menu_items.insert(0,f"[1] - Host - {selected_port.ntrip_client.ntrip_settings.host}")
             ntrip_settings_menu_items.insert(1,f"[2] - Port - {selected_port.ntrip_client.ntrip_settings.port}")
             ntrip_settings_menu_items.insert(2,f"[3] - Mountpoint - {selected_port.ntrip_client.ntrip_settings.mountpoint}")
-            ntrip_settings_menu_items.insert(3,f"[4] - Authentification - {"Enabled" if selected_port.ntrip_client.ntrip_settings.auth else "Disabled"}")
+            ntrip_settings_menu_items.insert(3,f"[4] - Authentication - {'Enabled' if selected_port.ntrip_client.ntrip_settings.auth else 'Disabled'}")
             ntrip_settings_menu_items.insert(4,f"[5] - Username - {selected_port.ntrip_client.ntrip_settings.username}")
             ntrip_settings_menu_items.insert(5,f"[6] - Password - {selected_port.ntrip_client.ntrip_settings.password}")
             ntrip_settings_menu_items.append("[q] - Back")
@@ -733,7 +733,7 @@ class TerminalUserInterface :
             selected_port.set_logging()
             return self.configure_stream_logging_menu(selected_port)
         def configure_logging_file_name_menu():
-            print("Enter the path to the Script file")
+            print("Enter the path to the log file")
             new_path = input()
             try :
                 if len(new_path) !=0 :

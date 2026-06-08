@@ -140,6 +140,6 @@ class UdpSettings:
         Returns:
             str: class as string
         """
-        return f" Host : {self.host} \n Port : {self.port} \n SpecificHost : {self.specific_host} \n DataFlow : {self.dataflow.name}\n"
+        return f" Host : {self.host} \nPort : {self.port} \nSpecificHost : {self.specific_host} \nDataFlow : {self.dataflow.name}\n"
    
     
