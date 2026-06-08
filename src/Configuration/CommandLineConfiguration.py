@@ -126,7 +126,7 @@ def config_ntrip_stream(stream : Stream ,command_config : str ):
 
     try :
         settings = NtripSettings(host = host[0], port = int(host[1].split("/")[0]),
-                                 auth= (True if len(credentials[0]) > 0 and len(credentials[1]) > 0  else False),
+                                 auth= len(credentials[0]) > 0,
                                  username= credentials[0],password= credentials[1],
                                  mountpoint=mountpoint[1])
         stream.ntrip_client = NtripClient(settings)
